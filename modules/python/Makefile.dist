@@ -1,3 +1,0 @@
-python/dist: pipenv setup.py pipenv/generate_requirements
-	$(WITH_PIPENV) python setup.py sdist
-.PHONY: python/dist

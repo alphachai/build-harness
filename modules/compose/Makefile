@@ -1,57 +1,39 @@
-DOCKER_COMPOSE = $(shell which docker-compose)
-DOCKER_MONITOR_TABLE ?= 'table {{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'
+DOCKER_NETWORK ?= $(COMPOSE_PROJECT_NAME)_default
 
-SHELL_UID := $(shell ls -id . | cut -d' ' -f1)_$(shell id -u)
+DOCKER_MONITOR_TABLE ?= 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}'
 
-export COMPOSE_FILE ?= docker/docker-compose.yaml
-
-$(COMPOSE_FILE):
-	@echo "Compose file not found! ($(COMPOSE_FILE))"
-	@exit 1
-
-compose/debug: $(COMPOSE_FILE)
-	@echo "SERVICE_NAME=$(SERVICE_NAME)"
-	@echo "COMPOSE_FILE=$(COMPOSE_FILE)"
-	@$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) --version
+DOCKER_COMPOSE ?= docker-compose
 
 ## Start local dev environment (daemonized)
-compose/up: $(COMPOSE_FILE)
-	$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) up -d
+compose/up:
+	@$(DOCKER_COMPOSE) up -d
 
 ## Stop local dev environment
-compose/down: $(COMPOSE_FILE)
-	$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) down
+compose/down:
+	@$(DOCKER_COMPOSE) down
 
 ## Restart local dev environment
 compose/restart: compose/down compose/up
 
 ## Purge local dev environment
-compose/purge: $(COMPOSE_FILE)
-	$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) down -v
+compose/purge:
+	@$(DOCKER_COMPOSE) down -v
 
 ## Rebuild custom containers for local dev environment
 compose/rebuild: compose/down compose/build compose/up
 
-## Tail logs from docker-compose containers
-compose/logs: $(COMPOSE_FILE)
-	@$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) logs -f
-
 ## Build local dev environment
-compose/build: $(COMPOSE_FILE)
-	$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) build
-
-## Show default compose ps
-compose/ps: $(COMPOSE_FILE)
-	@$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) ps
+compose/build:
+	@$(DOCKER_COMPOSE) build
 
 ## Show containers resource usage
-compose/monitor: $(COMPOSE_FILE)
-	@$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) ps -q | tr '\n' ' ' | docker stats --format $(DOCKER_MONITOR_TABLE) --no-stream
+compose/monitor:
+	@$(DOCKER_COMPOSE) ps -q | tr '\n' ' ' | docker stats --format $(DOCKER_MONITOR_TABLE) --no-stream
 
 ## Monitor in time containers resource usage
-compose/monitor/follow: $(COMPOSE_FILE)
-	@$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) ps -q | tr '\n' ' ' | docker stats --format $(DOCKER_MONITOR_TABLE)
+compose/monitor/follow:
+	@$(DOCKER_COMPOSE) ps -q | tr '\n' ' ' | docker stats --format $(DOCKER_MONITOR_TABLE)
 
 ## Show top for containers
-compose/top: $(COMPOSE_FILE)
-	@$(DOCKER_COMPOSE) -p "$(SERVICE_NAME)_$(SHELL_UID)" -f $(COMPOSE_FILE) top
+compose/top:
+	@$(DOCKER_COMPOSE) top
