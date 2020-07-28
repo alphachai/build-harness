@@ -1,5 +1,4 @@
 advbumpversion
-black
 flake8
 autoflake
 docker-compose
