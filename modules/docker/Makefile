@@ -24,3 +24,11 @@ docker/exec:
 docker/logs:
 	$(call assert-set,DOCKER_SERVICE_NAME)
 	@$(DOCKER) ps --no-trunc | grep Up | grep -o -E "$(DOCKER_SERVICE_NAME)" | xargs -I % bash -c 'docker logs -f %'
+
+## Get docker network info
+docker/network:
+	$(call assert-set,DOCKER_SERVICE_NAME)
+	@$(DOCKER) ps --no-trunc | grep Up | grep -o -E "$(DOCKER_SERVICE_NAME)" | xargs -I % bash -c 'docker inspect % -f "{{json .NetworkSettings.Networks }}"'
+
+docker/network/%:
+	docker inspect $* -f "{{json .NetworkSettings.Networks }}" | jq
