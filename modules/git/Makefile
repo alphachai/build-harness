@@ -46,7 +46,7 @@ git/ignore:
 
 
 git/require_master:
-	@if [ $$(git rev-parse --abbrev-ref HEAD) != "master" ]; then\
+	@if [ ${GIT_BRANCH} != "master" ]; then\
 		echo "You are not on master.";\
-		exit 0;\
+		exit 1;\
 	fi
