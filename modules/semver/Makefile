@@ -1,56 +1,32 @@
-ifneq ($(wildcard .git),)
-## Array of all possible versions based on this git commit
-SEMVERSIONS :=
+SEMVER_REGEX:=([0-9]*)[.]([0-9]*)[.]([0-9]*)
+define semver-part
+$(shell echo "$(1)" | sed -E 's/$(SEMVER_REGEX)/\$(2)/' )
+endef
 
-## Version based on short commit. ex.: 0.0.0-sha.80b9f6f
-SEMVERSION_COMMIT_SHORT = 0.0.0-sha.$(GIT_COMMIT_SHORT)
-SEMVERSIONS += $(SEMVERSION_COMMIT_SHORT)
-
-## Version based on long commit. ex.: 0.0.0-sha.80b9f6f5b965555e406b9db066a8e16cb1075e5f
-SEMVERSION_COMMIT = 0.0.0-sha.$(GIT_COMMIT)
-SEMVERSIONS += $(SEMVERSION_COMMIT)
-
-## If we are on git tag. ex.: 0.3.1
-SEMVERSION_TAG =
-
-ifeq ($(GIT_IS_TAG),1)
-  ## Version based on tag. ex.: 0.3.1
-  SEMVERSION_TAG = $(subst /,-,$(GIT_TAG))
-  SEMVERSIONS += $(SEMVERSION_TAG)
+ifneq ($(GIT_LATEST_SEMVER_TAG),)
+SEMVER_MAJOR:=$(call semver-part,$(GIT_LATEST_SEMVER_TAG),1)
+SEMVER_MINOR:=$(call semver-part,$(GIT_LATEST_SEMVER_TAG),2)
+SEMVER_PATCH:=$(call semver-part,$(GIT_LATEST_SEMVER_TAG),3)
+else
+SEMVER_MAJOR?=0
+SEMVER_MINOR?=0
+SEMVER_PATCH?=0
 endif
 
-## If we are on git branch. ex.: master
-SEMVERSION_BRANCH=
-SEMVERSION_BRANCH_COMMIT_SHORT=
-SEMVERSION_BRANCH_COMMIT=
-
-ifeq ($(GIT_IS_BRANCH),1)
-  ## Version based on branch. ex.: 0.0.0-master
-  SEMVERSION_BRANCH = 0.0.0-$(subst /,-,$(GIT_BRANCH))
-  SEMVERSIONS += $(SEMVERSION_BRANCH)
-
-  ## Version based on branch and short commit. ex.: 0.0.0-master.sha.80b9f6f
-  SEMVERSION_BRANCH_COMMIT_SHORT = $(SEMVERSION_BRANCH).sha.$(GIT_COMMIT_SHORT)
-  SEMVERSIONS += $(SEMVERSION_BRANCH_COMMIT_SHORT)
-
-  ## Version based on branch and long commit. ex.: 0.0.0-master.sha.80b9f6f5b965555e406b9db066a8e16cb1075e5f
-  SEMVERSION_BRANCH_COMMIT = $(SEMVERSION_BRANCH).sha.$(GIT_COMMIT)
-  SEMVERSIONS += $(SEMVERSION_BRANCH_COMMIT)
-endif
-
-## Use as default version first of possible versions
-export SEMVERSION ?= $(word 1,$(SEMVERSIONS))
-
-## Export semver vars
 semver/export:
-	@echo "SEMVERSION_COMMIT_SHORT=$(SEMVERSION_COMMIT_SHORT)"
-	@echo "SEMVERSION_COMMIT=$(SEMVERSION_COMMIT)"
-	@echo "SEMVERSION_BRANCH=$(SEMVERSION_BRANCH)"
-	@echo "SEMVERSION_BRANCH_COMMIT_SHORT=$(SEMVERSION_BRANCH_COMMIT_SHORT)"
-	@echo "SEMVERSION_BRANCH_COMMIT=$(SEMVERSION_BRANCH_COMMIT)"
-	@echo "SEMVERSION_TAG=$(SEMVERSION_TAG)"
+	$(call print-var,GIT_LATEST_SEMVER_TAG)
+	$(call print-var,SEMVER_MAJOR)
+	$(call print-var,SEMVER_MINOR)
+	$(call print-var,SEMVER_PATCH)
 
-else ifeq ($(DEBUG),true)
-  $(warning disabled semver processing)
-endif
+define semver
+$(shell echo $(if $(filter major,$(1)),$$(($(SEMVER_MAJOR) + 1)).0.0,)$(if $(filter minor,$(1)),$(SEMVER_MAJOR).$$(($(SEMVER_MINOR) + 1)).0,)$(if $(filter patch,$(1)),$(SEMVER_MAJOR).$(SEMVER_MINOR).$$(($(SEMVER_PATCH) + 1)),))
+endef
 
+semver:
+	@echo "$(shell basename -s .git `$(GIT) config --get remote.origin.url`) $(GIT_LATEST_SEMVER_TAG)"
+
+semver/%: git/require_master
+	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+	@$(GIT) push --follow-tags
