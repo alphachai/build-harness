@@ -1,5 +1,4 @@
-GIT:= $(shell which git 2>/dev/null)
-GITIGNORE_TARGETS ?= python
+GITIGNORE_TARGETS ?= python,golang
 
 ## Update submodules
 git/submodules-update:
