@@ -23,12 +23,15 @@ define semver
 $(shell echo $(if $(filter major,$(1)),$$(($(SEMVER_MAJOR) + 1)).0.0,)$(if $(filter minor,$(1)),$(SEMVER_MAJOR).$$(($(SEMVER_MINOR) + 1)).0,)$(if $(filter patch,$(1)),$(SEMVER_MAJOR).$(SEMVER_MINOR).$$(($(SEMVER_PATCH) + 1)),))
 endef
 
-semver:
+semver/check:
+	$(call assert-set,GIT_LATEST_SEMVER_TAG)
+
+semver: semver/check
 	@echo "$(shell basename -s .git `$(GIT) config --get remote.origin.url`) $(GIT_LATEST_SEMVER_TAG)"
 
 semver/announce/%:
 	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 
-semver/%: git/require_master semver/announce/$*
+semver/%: git/require_master semver/check semver/announce/$*
 	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) push --follow-tags
