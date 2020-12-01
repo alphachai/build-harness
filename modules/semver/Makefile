@@ -35,3 +35,6 @@ semver/announce/%:
 semver/%: git/require_master semver/check semver/announce/$*
 	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) push --follow-tags
+
+tag/%:
+	$(MAKE) semver/$*
