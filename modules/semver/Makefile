@@ -26,7 +26,9 @@ endef
 semver:
 	@echo "$(shell basename -s .git `$(GIT) config --get remote.origin.url`) $(GIT_LATEST_SEMVER_TAG)"
 
-semver/%: git/require_master
+semver/announce/%:
 	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+
+semver/%: git/require_master semver/announce/$*
 	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) push --follow-tags
