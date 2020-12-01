@@ -11,18 +11,20 @@ git/aliases-update:
 
 ## Export git vars
 git/export:
-	@echo "GIT_COMMIT=$(GIT_COMMIT)"
-	@echo "GIT_COMMIT_SHORT=$(GIT_COMMIT_SHORT)"
-	@echo "GIT_COMMIT_TIMESTAMP=$(GIT_COMMIT_TIMESTAMP)"
-	@echo "GIT_COMMIT_URL=$(GIT_COMMIT_URL)"
-	@echo "GIT_COMMIT_MESSAGE=$(GIT_COMMIT_MESSAGE)"
-	@echo "GIT_COMMIT_AUTHOR=$(GIT_COMMIT_AUTHOR)"
-	@echo "GIT_BRANCH=$(GIT_BRANCH)"
-	@echo "GIT_TAG=$(GIT_TAG)"
-	@echo "GIT_BRANCH_TAG=$(GIT_BRANCH_TAG)"
-	@echo "GIT_IS_BRANCH=$(GIT_IS_BRANCH)"
-	@echo "GIT_IS_TAG=$(GIT_IS_TAG)"
-	@echo "GIT_TIMESTAMP=$(GIT_TIMESTAMP)"
+	$(call print-var,GIT_COMMIT)
+	$(call print-var,GIT_COMMIT_SHORT)
+	$(call print-var,GIT_COMMIT_TIMESTAMP)
+	$(call print-var,GIT_COMMIT_URL)
+	$(call print-var,GIT_COMMIT_MESSAGE)
+	$(call print-var,GIT_COMMIT_AUTHOR)
+	$(call print-var,GIT_BRANCH)
+	$(call print-var,GIT_TAG)
+	$(call print-var,GIT_LATEST_TAG)
+	$(call print-var,GIT_LATEST_TAG_COMMIT)
+	$(call print-var,GIT_LATEST_SEMVER_TAG)
+	$(call print-var,GIT_BRANCH_TAG)
+	$(call print-var,GIT_IS_BRANCH)
+	$(call print-var,GIT_IS_TAG)
 
 ## Build .gitignore file if one doesn't exist
 git/ignore:
