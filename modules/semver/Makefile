@@ -32,6 +32,11 @@ define semver-tag
 $(shell $(GIT) tag -a $(call semver,$*) -m "$(call semver-diff,$*)" && $(GIT) push --follow-tags)
 endef
 
+# exit $(if $$(echo "major minor patch" | grep -w "$(1)"),0,1)
+define semver-validate
+if [ -z "$$(echo "major minor patch" | grep -w $(1))" ]; then echo "Invalid input."; exit 1; fi
+endef
+
 define repo-name
 $(shell echo "$$(basename -s .git `$(GIT) config --get remote.origin.url`)")
 endef
@@ -53,10 +58,16 @@ semver/announce/%: semver-check
 	@echo -e "$(call green,Project): $(call repo-name)"
 	@echo -e "$(call green,Version): $(GIT_LATEST_SEMVER_TAG) -> $(call yellow,$(call semver,$*))"
 
+.PHONY: semver/validate/%:
+semver/validate/%:
+	@$(call semver-validate,$*)
+
 .PHONY: semver/%
 semver/%: git/require_master semver-check
+	@$(call semver-validate,$*)
 	@$(call semver-tag,$*)
 
 .PHONY: release/%
 release/%:
+	@$(call semver-validate,$*)
 	@$(MAKE) semver/announce/$* changelog/exists/$* semver/$*
