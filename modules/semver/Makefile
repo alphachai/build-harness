@@ -33,12 +33,18 @@ semver: semver-check
 	@echo "$(shell basename -s .git `$(GIT) config --get remote.origin.url`) $(GIT_LATEST_SEMVER_TAG)"
 
 
-.PHONY: semver-announce/%
-semver-test/%:
+.PHONY: semver-dryrun/%
+semver-dryrun/%:
 	@echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 
 .PHONY: semver/%
 semver/%: git/require_master semver-check
+	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+	@$(GIT) push --follow-tags
+
+.PHONY: release/%
+release/%: git/require_master semver-check
 	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) push --follow-tags
