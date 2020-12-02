@@ -29,7 +29,7 @@ $(shell echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$1)")
 endef
 
 define semver-tag
-$(shell $(GIT) tag -a $(call semver,$*) -m "$(call semver-diff,$*)" && $(GIT) push --follow-tags)
+$(call git-tag,$(call semver,$*),$(call semver-diff,$*))
 endef
 
 # exit $(if $$(echo "major minor patch" | grep -w "$(1)"),0,1)

@@ -1,5 +1,12 @@
 GITIGNORE_TARGETS ?= python,golang
 
+define git-tag
+$(shell $(GIT) tag -a $(1) -m "$(2)" && $(GIT) push --follow-tags)
+endef
+
+git/tag/%:
+	$(call git-tag,$*,$*)
+
 ## Update submodules
 git/submodules-update:
 	$(call assert-set,GIT)
