@@ -13,6 +13,7 @@ SEMVER_MINOR?=0
 SEMVER_PATCH?=0
 endif
 
+.PHONY: semver/export
 semver/export:
 	$(call print-var,GIT_LATEST_SEMVER_TAG)
 	$(call print-var,SEMVER_MAJOR)
@@ -23,18 +24,21 @@ define semver
 $(shell echo $(if $(filter major,$(1)),$$(($(SEMVER_MAJOR) + 1)).0.0,)$(if $(filter minor,$(1)),$(SEMVER_MAJOR).$$(($(SEMVER_MINOR) + 1)).0,)$(if $(filter patch,$(1)),$(SEMVER_MAJOR).$(SEMVER_MINOR).$$(($(SEMVER_PATCH) + 1)),))
 endef
 
-semver/check:
+.PHONY: semver-check
+semver-check:
 	$(call assert-set,GIT_LATEST_SEMVER_TAG)
 
-semver: semver/check
+.PHONY: semver
+semver: semver-check
 	@echo "$(shell basename -s .git `$(GIT) config --get remote.origin.url`) $(GIT_LATEST_SEMVER_TAG)"
 
-semver/announce/%:
-	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 
-semver/%: git/require_master semver/check semver/announce/$*
+.PHONY: semver-announce/%
+semver-test/%:
+	@echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+
+.PHONY: semver/%
+semver/%: git/require_master semver-check
+	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
 	@$(GIT) push --follow-tags
-
-tag/%:
-	$(MAKE) semver/$*
