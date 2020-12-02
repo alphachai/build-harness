@@ -24,27 +24,39 @@ define semver
 $(shell echo $(if $(filter major,$(1)),$$(($(SEMVER_MAJOR) + 1)).0.0,)$(if $(filter minor,$(1)),$(SEMVER_MAJOR).$$(($(SEMVER_MINOR) + 1)).0,)$(if $(filter patch,$(1)),$(SEMVER_MAJOR).$(SEMVER_MINOR).$$(($(SEMVER_PATCH) + 1)),))
 endef
 
+define semver-diff
+$(shell echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$1)")
+endef
+
+define semver-tag
+$(shell $(GIT) tag -a $(call semver,$*) -m "$(call semver-diff,$*)" && $(GIT) push --follow-tags)
+endef
+
+define repo-name
+$(shell echo "$$(basename -s .git `$(GIT) config --get remote.origin.url`)")
+endef
+
 .PHONY: semver-check
 semver-check:
 	$(call assert-set,GIT_LATEST_SEMVER_TAG)
 
 .PHONY: semver
 semver: semver-check
-	@echo "$(shell basename -s .git `$(GIT) config --get remote.origin.url`) $(GIT_LATEST_SEMVER_TAG)"
+	@echo -e "$(call green,$(call bold,Project)): $(call repo-name)"
+	@echo -e "$(call green,$(call bold,Version)): $(GIT_LATEST_SEMVER_TAG)"
 
+.PHONY: version
+version: semver
 
-.PHONY: semver-dryrun/%
-semver-dryrun/%:
-	@echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
+.PHONY: semver/announce/%
+semver/announce/%: semver-check
+	@echo -e "$(call green,Project): $(call repo-name)"
+	@echo -e "$(call green,Version): $(GIT_LATEST_SEMVER_TAG) -> $(call yellow,$(call semver,$*))"
 
 .PHONY: semver/%
 semver/%: git/require_master semver-check
-	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
-	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
-	@$(GIT) push --follow-tags
+	@$(call semver-tag,$*)
 
 .PHONY: release/%
-release/%: git/require_master semver-check
-	@echo "Bumping the $* version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
-	@$(GIT) tag -a $(call semver,$*) -m "bump version $(GIT_LATEST_SEMVER_TAG) -> $(call semver,$*)"
-	@$(GIT) push --follow-tags
+release/%:
+	@$(MAKE) semver/announce/$* changelog/exists/$* semver/$*

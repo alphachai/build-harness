@@ -6,14 +6,14 @@ define changelog-contains-unreleased
 if [ "$$(awk '/^## \[U/,/^## \[[0-9]/' $(CHANGELOG_PATH) |  awk '!/^## \[/' | grep -c .)" -gt 0 ]; then exit 0; else echo "Unreleased changes not found in $(CHANGELOG_PATH)"; exit 1; fi
 endef
 
-define changelog-exists
-@if [ -f $(CHANGELOG_PATH) ]; then $(call changelog-contains,$(call semver,$(1))); else echo "Skipping changelog check because $(CHANGELOG_PATH) does not exist in $(CURDIR)"; fi
+define changelog-check
+@if [ -f $(CHANGELOG_PATH) ]; then $(call changelog-contains,$(call semver,$(1))); fi
 endef
 
 .PHONY: changelog/exists/%
 ## Check that a changelog file exists and contains the new version.
 changelog/exists/%:
-	$(call changelog-exists,$*)
+	$(call changelog-check,$*)
 
 .PHONY: changelog/release/%
 ## Check the changelog for Unreleased notes and promotes to the new version.

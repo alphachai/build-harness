@@ -13,7 +13,7 @@ HELP_FILTER ?= .*
 green = $(shell echo -e '\x1b[32;01m$1\x1b[0m')
 yellow = $(shell echo -e '\x1b[33;01m$1\x1b[0m')
 red = $(shell echo -e '\x1b[33;31m$1\x1b[0m')
-
+bold = $(shell echo "\033[1m$(1)\033[0m")
 
 # Ensures that a variable is defined
 define assert-set
