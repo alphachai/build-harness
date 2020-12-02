@@ -58,7 +58,7 @@ semver/announce/%: semver-check
 	@echo -e "$(call green,Project): $(call repo-name)"
 	@echo -e "$(call green,Version): $(GIT_LATEST_SEMVER_TAG) -> $(call yellow,$(call semver,$*))"
 
-.PHONY: semver/validate/%:
+.PHONY: semver/validate/%
 semver/validate/%:
 	@$(call semver-validate,$*)
 
