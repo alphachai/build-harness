@@ -12,7 +12,7 @@ export GIT_BRANCH ?= $(shell $(GIT) rev-parse --abbrev-ref HEAD 2>/dev/null)
 export GIT_TAG ?= $(shell $(GIT) tag -l --sort -taggerdate --points-at HEAD 2>/dev/null | head -n 1)
 export GIT_LATEST_TAG ?= $(shell $(GIT) describe --tags --abbrev=0 $(git rev-list --tags --max-count=1) 2>/dev/null)
 export GIT_LATEST_TAG_COMMIT ?= $(shell $(GIT) rev-list --tags --max-count=1)
-export GIT_LATEST_SEMVER_TAG ?= $(shell $(GIT) describe --tags --exact-match --match '[0-9\.]*' $$($(GIT) rev-list --tags --max-count=1) 2>/dev/null)
+export GIT_LATEST_SEMVER_TAG ?= $(shell $(GIT) describe --tags --match '*[0-9\.]*' $$($(GIT) rev-list --tags --max-count=1) 2>/dev/null)
 export GIT_COMMIT_URL ?= $(shell $(GIT) config --get remote.origin.url 2>/dev/null | sed 's/\.git$$//g' | sed 's/git@\(.*\):/https:\/\/\1\//g' )/commit/$(GIT_COMMIT_SHORT)
 
 export GIT_COMMIT_MESSAGE ?= $(shell $(GIT) show -s --format=%s%b 2>/dev/null)
