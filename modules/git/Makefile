@@ -1,7 +1,7 @@
 GITIGNORE_TARGETS ?= python,golang
 
 define git-tag
-$(shell $(GIT) tag -a $(1) -m "$(2)" && $(GIT) push --follow-tags)
+@$(GIT) tag -a $(1) -m "$(2)" && $(GIT) push --follow-tags
 endef
 
 git/tag/%:

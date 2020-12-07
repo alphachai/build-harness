@@ -31,11 +31,11 @@ $(shell echo $(SEMVER_PREFIX)$(if $(filter major,$(1)),$$(($(SEMVER_MAJOR) + 1))
 endef
 
 define semver-diff
-$(shell echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$1)")
+$(shell echo "$(GIT_LATEST_SEMVER_TAG) -> $(call semver,$(1))")
 endef
 
 define semver-tag
-$(call git-tag,$(call semver,$*),$(call semver-diff,$*))
+$(call git-tag,$(call semver,$(1)),$(call semver-diff,$(1)))
 endef
 
 # exit $(if $$(echo "major minor patch" | grep -w "$(1)"),0,1)
@@ -70,10 +70,9 @@ semver/validate/%:
 
 .PHONY: semver/%
 semver/%: git/require_master semver/check
-	@$(call semver-validate,$*)
+	@$(MAKE) semver/validate/$* semver/announce/$* changelog/exists/$*
 	@$(call semver-tag,$*)
 
 .PHONY: release/%
 release/%:
-	@$(call semver-validate,$*)
-	@$(MAKE) semver/announce/$* changelog/exists/$* semver/$*
+	@$(MAKE) semver/$*
